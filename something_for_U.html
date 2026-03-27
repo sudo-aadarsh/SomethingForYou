@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>For You ❤️</title>
+<style>
+/* Body & background */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #ff758c, #ff7eb3);
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Cards */
+.card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    color: #ff4d6d;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    width: 90%;
+    max-width: 350px;
+    display: none;
+    z-index: 2;
+}
+
+.card.active { display: block; }
+
+/* Buttons */
+button {
+    padding: 12px 24px;
+    margin: 10px;
+    border-radius: 25px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.yes { background: #ff4d6d; color: white; }
+.no  { background: #eee; position: relative; }
+
+/* Typing */
+#typing { font-size: 18px; min-height: 40px; }
+
+/* Fireworks canvas */
+#fireworks {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+</style>
+</head>
+<body>
+
+<canvas id="fireworks"></canvas>
+
+<audio id="music" loop>
+    <source src="https://www.bensound.com/bensound-music/bensound-love.mp3">
+</audio>
+
+<audio id="boom">
+    <source src="https://www.soundjay.com/misc/sounds/firework-explosion-01.mp3">
+</audio>
+
+<!-- Typing Intro -->
+<div id="p0" class="card active">
+    <div id="typing"></div>
+</div>
+
+<!-- Main Valentine Question -->
+<div id="p1" class="card">
+    <h2>Will you be my Valentine? 💖</h2>
+    <button class="yes" onclick="celebrate()">Yes 😍</button>
+    <button class="no" id="noBtn">No 😢</button>
+    <p id="msg"></p>
+</div>
+
+<!-- Pickup Lines -->
+<div id="p2" class="card">
+    <h3 id="pickup"></h3>
+    <button onclick="newPickup()">Another 💘</button>
+    <button onclick="go(3)">Next</button>
+</div>
+
+<!-- Romantic Quotes -->
+<div id="p3" class="card">
+    <h3 id="quote"></h3>
+    <button onclick="newQuote()">Another 💖</button>
+    <button onclick="go(4)">Next</button>
+</div>
+
+<!-- Final Page -->
+<div id="p4" class="card">
+    <h2>I Love You ❤️</h2>
+    <p>You mean everything to me 💞</p>
+</div>
+
+<script>
+/* MUSIC AUTOPLAY SAFE */
+document.body.addEventListener("click", () => {
+    document.getElementById("music").play().catch(()=>{});
+}, { once: true });
+
+/* TYPING INTRO */
+const text = "Hey... I have something to tell you ❤️";
+let i = 0;
+function typing() {
+    if(i < text.length) {
+        document.getElementById("typing").innerHTML += text[i];
+        i++;
+        setTimeout(typing, 40);
+    } else {
+        setTimeout(()=>go(1), 1000);
+    }
+}
+typing();
+
+/* PAGE SWITCH */
+function go(n){
+    document.querySelectorAll(".card").forEach(c=>c.classList.remove("active"));
+    document.getElementById("p"+n).classList.add("active");
+    if(n===2) newPickup();
+    if(n===3) newQuote();
+}
+
+/* NO BUTTON DODGE (Desktop + Mobile) */
+const noBtn = document.getElementById("noBtn");
+const msg = document.getElementById("msg");
+
+function moveNoButton() {
+    const parent = noBtn.parentElement;
+    const maxX = parent.clientWidth - noBtn.offsetWidth;
+    const maxY = parent.clientHeight - noBtn.offsetHeight;
+    const x = Math.random() * maxX;
+    const y = Math.random() * maxY;
+    noBtn.style.position = "absolute";
+    noBtn.style.left = x + "px";
+    noBtn.style.top = y + "px";
+}
+
+noBtn.addEventListener("mouseover", moveNoButton);
+noBtn.addEventListener("touchstart", moveNoButton);
+
+const msgs = [
+"Please don't 😭","Say yes 🥺","Don't break my heart 💔",
+"I’ll be sad 😢","Please reconsider ❤️"
+];
+
+noBtn.addEventListener("click", () => {
+    msg.innerText = msgs[Math.floor(Math.random()*msgs.length)];
+});
+
+/* PICKUP LINES */
+const pickupStarts = ["Are you","I think you're","You must be","Honestly you're"];
+const pickupEnds = [
+"the most beautiful person I've ever seen",
+"the reason I smile every day",
+"someone I can't stop thinking about",
+"the best thing in my life",
+"absolutely perfect"
+];
+const pickupExtras = [" ❤️"," 💘"," 🥺"," 💞"," 💖"];
+
+let pickups=[];
+for(let s of pickupStarts){
+    for(let e of pickupEnds){
+        for(let x of pickupExtras){
+            pickups.push(s+" "+e+x);
+        }
+    }
+}
+pickups.sort(()=>Math.random()-0.5);
+let pi=0;
+function newPickup(){
+    document.getElementById("pickup").innerText=pickups[pi];
+    pi=(pi+1)%pickups.length;
+}
+
+/* ROMANTIC QUOTES */
+const qs=["I love you","You are","My heart is","Being with you is"];
+const qm=[
+"the best thing in my life",
+"pure happiness",
+"like a dream",
+"something I never want to lose"
+];
+const qe=[" ❤️"," 💞"," 💘"," ✨"];
+let quotes=[];
+for(let s of qs){
+    for(let m of qm){
+        for(let e of qe){
+            quotes.push(s+" "+m+e);
+        }
+    }
+}
+quotes.sort(()=>Math.random()-0.5);
+let qi=0;
+function newQuote(){
+    document.getElementById("quote").innerText=quotes[qi];
+    qi=(qi+1)%quotes.length;
+}
+
+/* FIREWORKS CANVAS */
+const canvas=document.getElementById("fireworks");
+const ctx=canvas.getContext("2d");
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+let particles=[];
+
+function createFirework(x,y){
+    for(let i=0;i<60;i++){
+        particles.push({
+            x,y,
+            vx:(Math.random()-0.5)*6,
+            vy:(Math.random()-0.5)*6,
+            life:80
+        });
+    }
+}
+
+function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach((p,i)=>{
+        p.x+=p.vx;
+        p.y+=p.vy;
+        p.life--;
+        ctx.fillStyle="white";
+        ctx.fillRect(p.x,p.y,3,3);
+        if(p.life<=0) particles.splice(i,1);
+    });
+    requestAnimationFrame(animate);
+}
+animate();
+
+/* RESIZE CANVAS ON MOBILE/DESKTOP */
+window.addEventListener('resize', ()=>{
+    canvas.width=window.innerWidth;
+    canvas.height=window.innerHeight;
+});
+
+/* CELEBRATE YES CLICK */
+function celebrate(){
+    document.getElementById("boom").play().catch(()=>{});
+    for(let i=0;i<6;i++){
+        setTimeout(()=>{
+            createFirework(
+                Math.random()*canvas.width,
+                Math.random()*canvas.height/2
+            );
+        },i*300);
+    }
+    setTimeout(()=>go(2),1200);
+}
+
+</script>
+</body>
+</html>
